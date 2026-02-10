@@ -1,32 +1,21 @@
 import { LoginView, loginController } from "../views/login.view.js";
 import { SignupView, signupController } from "../views/signup.view.js";
-import { logout, isAuthenticated } from "../auth/auth.store.js";
+import { DashboardView } from "../views/dashboard.view.js";
+import { isAuthenticated, logout } from "../auth/auth.store.js";
 
 const routes = {
-  "/": { view: LoginView, controller: loginController },
-  "/signup": { view: SignupView, controller: signupController },
+  "/": {
+    view: LoginView,
+    controller: loginController,
+  },
+
+  "/signup": {
+    view: SignupView,
+    controller: signupController,
+  },
 
   "/dashboard": {
-    view: () => `
-      <div class="min-h-screen flex items-center justify-center bg-gray-100">
-        <div class="bg-white p-6 rounded-lg shadow w-96 text-center">
-          <h1 class="text-2xl font-bold text-green-600 mb-4">
-            Dashboard
-          </h1>
-
-          <p class="mb-6 text-gray-600">
-            You are logged in successfully
-          </p>
-
-          <button
-            id="logoutBtn"
-            class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    `,
+    view: DashboardView,
     controller: () => {
       // 🔐 Protect dashboard
       if (!isAuthenticated()) {
@@ -34,10 +23,14 @@ const routes = {
         return;
       }
 
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        logout();
-        window.location.hash = "#/";
-      });
+      // 🚪 Logout logic
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          logout();
+          window.location.hash = "#/";
+        });
+      }
     },
   },
 };
