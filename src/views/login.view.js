@@ -1,45 +1,84 @@
 import { login } from "../auth/auth.service.js";
 import { setAuth } from "../auth/auth.store.js";
-import { navigate } from "../router/router.js";
 
 export const LoginView = () => `
-  <div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-6 rounded-lg shadow w-96">
-      <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+  <div class="min-h-screen flex items-center justify-center bg-slate-900 text-slate-200">
 
-      <form id="loginForm" class="space-y-4">
-        <input id="username" class="w-full border p-2 rounded" placeholder="Username" required />
-        <input id="password" type="password" class="w-full border p-2 rounded" placeholder="Password" required />
+    <div class="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-8">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-blue-400">Student ERP</h1>
+        <p class="text-sm text-slate-400 mt-2">
+          Sign in to your admin account
+        </p>
+      </div>
 
-        <button class="w-full bg-blue-600 text-white py-2 rounded">
+      <!-- Form -->
+      <form id="loginForm" class="space-y-5">
+
+        <div>
+          <label class="block text-sm mb-1 text-slate-400">
+            Username
+          </label>
+          <input
+            id="username"
+            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter username"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm mb-1 text-slate-400">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter password"
+            required
+          />
+        </div>
+
+        <button
+          class="w-full bg-blue-600 hover:bg-blue-500 transition py-2.5 rounded-lg font-semibold">
           Login
         </button>
       </form>
 
-      <p class="text-sm text-center mt-4">
-        No account?
-        <a href="#/signup" class="text-blue-600">Signup</a>
+      <!-- Footer -->
+      <p class="text-center text-sm text-slate-400 mt-6">
+        Don’t have an account?
+        <a href="#/signup" class="text-blue-400 hover:underline">
+          Sign up
+        </a>
       </p>
 
-      <p id="error" class="text-red-500 text-sm mt-2"></p>
+      <p
+        id="error"
+        class="text-center text-sm text-red-400 mt-4">
+      </p>
     </div>
   </div>
 `;
 
 export const loginController = () => {
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document.getElementById("loginForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    try {
-      const res = await login({
-        username: username.value,
-        password: password.value,
-      });
+      try {
+        const res = await login({
+          username: username.value,
+          password: password.value,
+        });
 
-      setAuth(res.data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      document.getElementById("error").innerText = err.message;
-    }
-  });
+        setAuth(res.data.token);
+        window.location.hash = "#/dashboard";
+      } catch (err) {
+        document.getElementById("error").innerText = err.message;
+      }
+    });
 };

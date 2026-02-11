@@ -1,5 +1,5 @@
 import { signup } from "../auth/auth.service.js";
-import { navigate } from "../router/router.js";
+
 
 export const SignupView = () => `
   <div class="min-h-screen flex items-center justify-center bg-gray-100">
@@ -35,7 +35,7 @@ export const signupController = () => {
         password: password.value,
       });
 
-      navigate("/");
+      window.location.hash = "#/";
     } catch (err) {
       document.getElementById("error").innerText = err.message;
     }
