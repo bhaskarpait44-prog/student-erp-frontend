@@ -43,10 +43,35 @@ export const LoginView = () => `
         </div>
 
         <button
-          class="w-full bg-blue-600 hover:bg-blue-500 transition py-2.5 rounded-lg font-semibold">
-          Login
-        </button>
-      </form>
+  id="loginBtn"
+  class="w-full bg-blue-600 hover:bg-blue-500 transition py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2"
+>
+  <span id="btnText">Login</span>
+
+  <!-- Spinner -->
+  <svg
+    id="btnLoader"
+    class="hidden w-5 h-5 animate-spin"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      class="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      stroke-width="4"
+    ></circle>
+    <path
+      class="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+    ></path>
+  </svg>
+</button>
+
 
       <!-- Footer -->
       <p class="text-center text-sm text-slate-400 mt-6">
@@ -64,44 +89,41 @@ export const LoginView = () => `
   </div>
 `;
 
-// export const loginController = () => {
-//   document.getElementById("loginForm")
-//     .addEventListener("submit", async (e) => {
-//       e.preventDefault();
-
-//       try {
-//         const res = await login({
-//           username: username.value,
-//           password: password.value,
-//         });
-
-//         setAuth(res.data.token);
-//         window.location.hash = "#/dashboard";
-//       } catch (err) {
-//         document.getElementById("error").innerText = err.message;
-//       }
-//     });
-// };
-
 
 export const loginController = () => {
   const form = document.getElementById("loginForm");
   const errorEl = document.getElementById("error");
+  const loginBtn = document.getElementById("loginBtn");
+  const btnText = document.getElementById("btnText");
+  const btnLoader = document.getElementById("btnLoader");
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    errorEl.innerText = "";
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
     try {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
+      // ✅ Start Loading
+      loginBtn.disabled = true;
+      btnText.innerText = "Logging in...";
+      btnLoader.classList.remove("hidden");
 
       const res = await login({ username, password });
 
       setAuth(res.data.token);
 
       window.location.hash = "#/dashboard";
+
     } catch (err) {
       errorEl.innerText = err.message || "Login failed";
+    } finally {
+      // ✅ Stop Loading
+      loginBtn.disabled = false;
+      btnText.innerText = "Login";
+      btnLoader.classList.add("hidden");
     }
   });
 };
