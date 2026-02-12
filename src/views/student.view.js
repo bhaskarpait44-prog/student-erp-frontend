@@ -46,12 +46,12 @@ export function StudentsView() {
 
           ${Input("Full Name", "name")}
           ${Input("Roll Number", "rollNo")}
+          ${Input("Class", "className")}
           ${Input("Gender", "gender")}
           ${Input("Mobile", "mobile")}
           ${Input("Email", "email")}
           ${Input("Father Name", "fatherName")}
           ${Input("Mother Name", "motherName")}
-
         </form>
       </div>
 
@@ -169,6 +169,7 @@ export async function studentsController() {
     const data = {
       name: val("name"),
       rollNo: val("rollNo"),
+      className: val("className"), 
       gender: val("gender"),
       mobile: val("mobile"),
       email: val("email"),
@@ -197,11 +198,13 @@ export async function studentsController() {
     document.getElementById("studentId").value = student._id;
     document.getElementById("name").value = student.name || "";
     document.getElementById("rollNo").value = student.rollNo || "";
+    document.getElementById("className").value = student.className || "";
     document.getElementById("gender").value = student.gender || "";
     document.getElementById("mobile").value = student.mobile || "";
     document.getElementById("email").value = student.email || "";
     document.getElementById("fatherName").value = student.fatherName || "";
     document.getElementById("motherName").value = student.motherName || "";
+
 
     modal.classList.remove("hidden");
     modal.classList.add("flex");
@@ -223,6 +226,8 @@ function studentCard(s) {
       <div>
         <h3 class="text-lg font-semibold">${s.name}</h3>
         <p class="text-sm text-slate-400">Roll No: ${s.rollNo}</p>
+        <p class="text-sm text-slate-400">Class: ${s.className || "-"}</p>
+
       </div>
 
       <div class="relative">
