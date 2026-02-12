@@ -13,6 +13,10 @@ export const request = async (endpoint, options = {}) => {
     ...options,
   });
 
+
+  
+ 
+
   const data = await res.json();
 
   if (!res.ok) {

@@ -64,21 +64,44 @@ export const LoginView = () => `
   </div>
 `;
 
+// export const loginController = () => {
+//   document.getElementById("loginForm")
+//     .addEventListener("submit", async (e) => {
+//       e.preventDefault();
+
+//       try {
+//         const res = await login({
+//           username: username.value,
+//           password: password.value,
+//         });
+
+//         setAuth(res.data.token);
+//         window.location.hash = "#/dashboard";
+//       } catch (err) {
+//         document.getElementById("error").innerText = err.message;
+//       }
+//     });
+// };
+
+
 export const loginController = () => {
-  document.getElementById("loginForm")
-    .addEventListener("submit", async (e) => {
-      e.preventDefault();
+  const form = document.getElementById("loginForm");
+  const errorEl = document.getElementById("error");
 
-      try {
-        const res = await login({
-          username: username.value,
-          password: password.value,
-        });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        setAuth(res.data.token);
-        window.location.hash = "#/dashboard";
-      } catch (err) {
-        document.getElementById("error").innerText = err.message;
-      }
-    });
+    try {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await login({ username, password });
+
+      setAuth(res.data.token);
+
+      window.location.hash = "#/dashboard";
+    } catch (err) {
+      errorEl.innerText = err.message || "Login failed";
+    }
+  });
 };

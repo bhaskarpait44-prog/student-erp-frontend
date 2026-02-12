@@ -11,3 +11,18 @@ export const createStudent = (data) => {
     body: JSON.stringify(data),
   });
 };
+
+export const deleteStudent = (id) =>
+  request(`/students/${id}`, {
+    method: "DELETE",
+  });
+
+
+export const updateStudent = (id, data) =>
+  request(`/students/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+
+  export const getStudentById = (id) =>
+  request(`/students/${id}`);
