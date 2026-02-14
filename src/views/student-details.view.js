@@ -31,6 +31,12 @@ export function StudentDetailsView() {
         </button>
       </div>
     </div>
+    <button 
+  id="attendanceBtn"
+  class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-white text-sm shadow-md transition-all duration-300">
+  View Attendance
+</button>
+
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -129,6 +135,13 @@ export async function studentDetailsController(id) {
 
   const student = await getStudentById(id);
   if (!student) return;
+
+
+  document.getElementById("attendanceBtn")
+  ?.addEventListener("click", () => {
+    window.location.hash = `#/attendance?studentId=${id}`;
+  });
+
 
   // Fill profile
   document.getElementById("profileLetter").innerText =

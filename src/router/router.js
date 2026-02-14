@@ -22,6 +22,9 @@ import { SessionView, sessionController } from "../views/session.view.js";
 import { loadNavbarSessions } from "../utils/session.js";
 import { PromotionView, promotionController } from "../views/promotion.view.js";
 
+import attendanceView from "../views/attendance.view.js";  // ✅ extension added
+
+
 
 /* ======================================================
    ROUTES CONFIG
@@ -79,12 +82,19 @@ const routes = {
   },
 
   "/promotions": {
-  view: PromotionView,
-  controller: promotionController,
-  protected: true,
-},
+    view: PromotionView,
+    controller: promotionController,
+    protected: true,
+  },
 
+  // ✅ Attendance Route (Active Session Based)
+  "/attendance": {
+    view: () => "",   // render manually
+    protected: true,
+  },
 };
+
+
 
 /* ======================================================
    ROUTER FUNCTION
@@ -115,7 +125,7 @@ export const router = () => {
     document.getElementById("pageContent").innerHTML =
       route.view();
 
-    // 3️⃣ Load Navbar Sessions (safe after DOM ready)
+    // 3️⃣ Load Navbar Sessions
     setTimeout(() => {
       loadNavbarSessions?.();
     }, 0);
@@ -138,15 +148,12 @@ export const router = () => {
     // 5️⃣ Logout
     document.getElementById("logoutBtn")
       ?.addEventListener("click", () => {
-        logout();
-        logout();
-sessionStorage.setItem("justLoggedOut", "1");
-window.location.hash = "#/";
-
-
+        logout();   // ✅ removed duplicate logout
+        sessionStorage.setItem("justLoggedOut", "1");
+        window.location.hash = "#/";
       });
 
-    // 6️⃣ Special case → Student Details with query param
+    // 6️⃣ Special cases
     if (path === "/student-details") {
 
       const hash = window.location.hash;
@@ -156,7 +163,19 @@ window.location.hash = "#/";
 
       studentDetailsController?.(id);
 
-    } else {
+    } 
+    else if (path === "/attendance") {
+
+      const hash = window.location.hash;
+      const queryString = hash.split("?")[1];
+      const params = new URLSearchParams(queryString);
+
+      const studentId = params.get("studentId");
+
+      attendanceView(studentId);   // ✅ only studentId (Active Session based)
+
+    } 
+    else {
 
       route.controller?.();
     }
