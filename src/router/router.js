@@ -139,7 +139,11 @@ export const router = () => {
     document.getElementById("logoutBtn")
       ?.addEventListener("click", () => {
         logout();
-        window.location.hash = "#/";
+        logout();
+sessionStorage.setItem("justLoggedOut", "1");
+window.location.hash = "#/";
+
+
       });
 
     // 6️⃣ Special case → Student Details with query param
