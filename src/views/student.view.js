@@ -10,81 +10,56 @@ import {
 ================================ */
 export function StudentsView() {
   return `
-  <div class="space-y-8">
+  <div class="space-y-10">
 
     <!-- HEADER -->
     <div class="flex justify-between items-center">
+
       <div>
-        <h1 class="text-3xl font-bold">Students</h1>
-        <p class="text-slate-400 text-sm">
-          Manage student records
+        <h1 class="text-3xl font-semibold tracking-tight text-white">
+          Students
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Manage and monitor student records
         </p>
       </div>
 
       <button id="openAddStudent"
-        class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg shadow transition">
+        class="bg-gradient-to-r from-indigo-600 to-blue-500
+               hover:from-indigo-500 hover:to-blue-400
+               px-6 py-2.5 rounded-xl shadow-xl
+               text-sm font-medium tracking-wide
+               transition-all duration-300 hover:scale-105">
         + Add Student
       </button>
+
     </div>
 
     <!-- SEARCH -->
-    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+    <div class="bg-slate-900/60 backdrop-blur-xl
+                p-6 rounded-2xl border border-slate-800
+                shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+
       <input
         id="studentSearch"
         placeholder="Search by name or roll number..."
-        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full bg-slate-950 border border-slate-800
+               rounded-xl px-5 py-3 text-sm
+               focus:outline-none focus:ring-2 focus:ring-indigo-500
+               transition-all duration-300"
       />
+
     </div>
 
     <!-- GRID -->
     <div id="studentsGrid"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
       <p class="text-slate-400">Loading...</p>
     </div>
 
   </div>
 
-  <!-- MODAL -->
-  <div id="studentModal"
-    class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
-
-    <div class="bg-slate-800 w-full max-w-3xl rounded-xl border border-slate-700 shadow-xl">
-
-      <div class="flex justify-between items-center px-6 py-4 border-b border-slate-700">
-        <h2 id="modalTitle" class="text-lg font-semibold">Add Student</h2>
-        <button id="closeModal" class="text-xl">✕</button>
-      </div>
-
-      <div class="p-6">
-        <form id="studentForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-          <input type="hidden" id="studentId" />
-
-          ${Input("Full Name", "name")}
-          ${Input("Roll Number", "rollNo")}
-          ${Input("Gender", "gender")}
-          ${Input("Class", "className")}
-          ${Input("Mobile", "mobile")}
-          ${Input("Email", "email")}
-          ${Input("Father Name", "fatherName")}
-          ${Input("Mother Name", "motherName")}
-        </form>
-      </div>
-
-      <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-700">
-        <button id="cancelModal"
-          class="bg-slate-700 px-4 py-2 rounded hover:bg-slate-600 transition">
-          Cancel
-        </button>
-
-        <button id="saveStudentBtn"
-          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded transition">
-          Save
-        </button>
-      </div>
-
-    </div>
-  </div>
+  ${studentModal()}
   `;
 }
 
@@ -155,13 +130,13 @@ export async function studentsController() {
   searchInput.addEventListener("input", () => {
     const value = searchInput.value.toLowerCase();
     const filtered = allStudents.filter(s =>
-      s.name.toLowerCase().includes(value) ||
-      s.rollNo.toLowerCase().includes(value)
+      s.name?.toLowerCase().includes(value) ||
+      s.rollNo?.toLowerCase().includes(value)
     );
     renderStudents(filtered);
   });
 
-  /* OPEN MODAL */
+  /* MODAL OPEN */
   openBtn.addEventListener("click", () => {
     document.getElementById("modalTitle").innerText = "Add Student";
     document.getElementById("studentForm").reset();
@@ -180,17 +155,16 @@ export async function studentsController() {
   saveBtn.addEventListener("click", async () => {
     const id = document.getElementById("studentId").value;
 
-      const data = {
-  name: val("name"),
-  rollNo: val("rollNo"),
-  gender: val("gender"),
-  className: val("className"), 
-  mobile: val("mobile"),
-  email: val("email"),
-  fatherName: val("fatherName"),
-  motherName: val("motherName"),
-};
-
+    const data = {
+      name: val("name"),
+      rollNo: val("rollNo"),
+      gender: val("gender"),
+      className: val("className"),
+      mobile: val("mobile"),
+      email: val("email"),
+      fatherName: val("fatherName"),
+      motherName: val("motherName"),
+    };
 
     if (id) {
       await updateStudent(id, data);
@@ -227,71 +201,142 @@ export async function studentsController() {
 }
 
 /* ===============================
-   CARD
+   MODAL
+================================ */
+function studentModal() {
+  return `
+  <div id="studentModal"
+    class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+
+    <div class="bg-slate-900/95 backdrop-blur-2xl
+                w-full max-w-4xl rounded-3xl
+                border border-slate-800
+                shadow-[0_30px_80px_rgba(0,0,0,0.8)]">
+
+      <div class="flex justify-between items-center px-8 py-6 border-b border-slate-800">
+        <h2 id="modalTitle" class="text-xl font-semibold text-white">
+          Add Student
+        </h2>
+        <button id="closeModal"
+          class="h-10 w-10 flex items-center justify-center
+                 rounded-full hover:bg-slate-800 text-lg">✕</button>
+      </div>
+
+      <div class="p-8">
+        <form id="studentForm"
+          class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <input type="hidden" id="studentId" />
+
+          ${Input("Full Name", "name")}
+          ${Input("Roll Number", "rollNo")}
+          ${Input("Gender", "gender")}
+          ${Input("Class", "className")}
+          ${Input("Mobile", "mobile")}
+          ${Input("Email", "email")}
+          ${Input("Father Name", "fatherName")}
+          ${Input("Mother Name", "motherName")}
+
+        </form>
+      </div>
+
+      <div class="flex justify-end gap-4 px-8 py-6 border-t border-slate-800">
+        <button id="cancelModal"
+          class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700">
+          Cancel
+        </button>
+        <button id="saveStudentBtn"
+          class="px-6 py-2.5 rounded-xl
+                 bg-gradient-to-r from-indigo-600 to-blue-500
+                 hover:from-indigo-500 hover:to-blue-400 shadow-lg">
+          Save Student
+        </button>
+      </div>
+
+    </div>
+  </div>
+  `;
+}
+
+/* ===============================
+   CARD (Modern SaaS Version)
 ================================ */
 function studentCard(s) {
   return `
-  <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:shadow-xl hover:border-blue-500 transition relative">
+  <div class="group relative bg-slate-900/70 backdrop-blur-xl
+              border border-slate-800 rounded-2xl p-6
+              shadow-[0_10px_40px_rgba(0,0,0,0.6)]
+              transition-all duration-300
+              hover:-translate-y-2 hover:shadow-[0_20px_60px_rgba(0,0,0,0.8)]
+              hover:border-indigo-500/40 overflow-hidden">
 
-    <div class="flex justify-between items-start">
+    <div class="absolute inset-0 opacity-0 group-hover:opacity-100
+                transition duration-500
+                bg-gradient-to-tr from-indigo-500/10 via-transparent to-cyan-500/10"></div>
 
-      <div class="flex items-center gap-4">
+    <div class="relative z-10">
 
-        <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg font-semibold">
-          ${s.name ? s.name.charAt(0).toUpperCase() : "S"}
+      <div class="flex justify-between items-start">
+
+        <div class="flex items-center gap-4">
+
+          <div class="h-14 w-14 rounded-full
+                      bg-gradient-to-tr from-indigo-500 to-cyan-400
+                      flex items-center justify-center
+                      text-lg font-semibold text-white shadow-lg">
+            ${s.name ? s.name.charAt(0).toUpperCase() : "S"}
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-white">
+              ${s.name}
+            </h3>
+            <p class="text-xs text-slate-400">
+              Roll No: ${s.rollNo}
+            </p>
+            <p class="text-xs text-slate-400">
+              Class: ${s.className || "-"}
+            </p>
+          </div>
+
         </div>
 
-        <div>
-          <h3 class="text-lg font-semibold">
-            ${s.name}
-          </h3>
+        <div class="relative">
+          <button class="menuBtn p-2 rounded-lg hover:bg-slate-800">
+            ⋮
+          </button>
 
-          <p class="text-sm text-slate-400">
-            Roll No: ${s.rollNo}
-          </p>
+          <div class="dropdownMenu hidden absolute right-0 mt-2 w-40
+                      bg-slate-900/95 backdrop-blur-xl
+                      border border-slate-800
+                      rounded-xl shadow-xl overflow-hidden">
 
-          <p class="text-sm text-slate-400">
-            Class: ${s.className || "-"}
-          </p>
+            <button class="viewBtn w-full text-left px-4 py-2 text-sm hover:bg-slate-800"
+              data-id="${s._id}">
+              👁 View
+            </button>
+
+            <button class="editBtn w-full text-left px-4 py-2 text-sm hover:bg-slate-800"
+              data-student="${encodeURIComponent(JSON.stringify(s))}">
+              ✏ Edit
+            </button>
+
+            <button class="deleteBtn w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800"
+              data-id="${s._id}">
+              🗑 Delete
+            </button>
+
+          </div>
         </div>
 
       </div>
 
-      <div class="relative">
-        <button
-          class="menuBtn p-2 rounded-lg hover:bg-slate-700 transition">
-          ⋮
-        </button>
-
-        <div
-          class="dropdownMenu hidden absolute right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
-
-          <button
-            class="viewBtn w-full text-left px-4 py-2 text-sm hover:bg-slate-800"
-            data-id="${s._id}">
-            👁 View
-          </button>
-
-          <button
-            class="editBtn w-full text-left px-4 py-2 text-sm hover:bg-slate-800"
-            data-student="${encodeURIComponent(JSON.stringify(s))}">
-            ✏ Edit
-          </button>
-
-          <button
-            class="deleteBtn w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-800"
-            data-id="${s._id}">
-            🗑 Delete
-          </button>
-
-        </div>
+      <div class="mt-5 border-t border-slate-800 pt-4 space-y-1 text-sm text-slate-400">
+        <p>Gender: ${s.gender || "-"}</p>
+        <p>Mobile: ${s.mobile || "-"}</p>
+        <p>Email: ${s.email || "-"}</p>
       </div>
-    </div>
 
-    <div class="mt-4 border-t border-slate-700 pt-3 space-y-1 text-sm text-slate-400">
-      <p>Gender: ${s.gender || "-"}</p>
-      <p>Mobile: ${s.mobile || "-"}</p>
-      <p>Email: ${s.email || "-"}</p>
     </div>
 
   </div>
@@ -306,7 +351,9 @@ function Input(label, id) {
     <div>
       <label class="text-sm text-slate-400">${label}</label>
       <input id="${id}"
-        class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        class="w-full bg-slate-950 border border-slate-800
+               rounded-xl px-4 py-2 mt-2
+               focus:outline-none focus:ring-2 focus:ring-indigo-500" />
     </div>
   `;
 }

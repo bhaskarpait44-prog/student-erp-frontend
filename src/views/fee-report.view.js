@@ -2,42 +2,111 @@ import { feeService } from "../api/fee.service.js";
 
 export function FeeReportView() {
   return `
-    <h1 class="text-2xl font-bold mb-6">Reports & Export</h1>
+    <div class="space-y-10">
 
-    <!-- Collection Report -->
-    <div class="bg-slate-800 p-4 rounded mb-6">
-      <h2 class="font-semibold mb-3">Collection Report</h2>
+      <h1 class="text-3xl font-semibold tracking-tight text-white">
+        Reports & Export
+      </h1>
 
-      <div class="flex gap-4 mb-4">
-        <input type="date" id="startDate" class="border p-2"/>
-        <input type="date" id="endDate" class="border p-2"/>
-        <button id="generateReportBtn"
-          class="bg-blue-600 px-4 py-2 rounded">
-          Generate
-        </button>
+      <!-- ================= COLLECTION REPORT ================= -->
+      <div class="bg-slate-900/70 backdrop-blur-xl
+                  border border-slate-800 rounded-2xl
+                  p-8 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
+
+        <h2 class="text-lg font-semibold mb-6 text-white">
+          Collection Report
+        </h2>
+
+        <div class="grid md:grid-cols-3 gap-6 items-end">
+
+          <!-- Start Date -->
+          <div class="space-y-2">
+            <label class="text-xs text-slate-400 tracking-wide">
+              Start Date
+            </label>
+            <div class="relative">
+              <input
+                type="date"
+                id="startDate"
+                class="w-full bg-slate-950 border border-slate-800
+                       rounded-xl px-4 py-3 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500
+                       transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          <!-- End Date -->
+          <div class="space-y-2">
+            <label class="text-xs text-slate-400 tracking-wide">
+              End Date
+            </label>
+            <div class="relative">
+              <input
+                type="date"
+                id="endDate"
+                class="w-full bg-slate-950 border border-slate-800
+                       rounded-xl px-4 py-3 text-sm
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500
+                       transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          <!-- Generate Button -->
+          <button id="generateReportBtn"
+            class="h-[46px]
+                   bg-gradient-to-r from-indigo-600 to-blue-500
+                   hover:from-indigo-500 hover:to-blue-400
+                   rounded-xl text-sm font-medium
+                   shadow-lg transition-all duration-300 hover:scale-105">
+            Generate Report
+          </button>
+
+        </div>
+
+        <!-- Result -->
+        <div id="collectionResult" class="mt-8"></div>
+
       </div>
 
-      <p id="collectionResult"></p>
-    </div>
+      <!-- ================= DEFAULTERS ================= -->
+      <div class="bg-slate-900/70 backdrop-blur-xl
+                  border border-slate-800 rounded-2xl
+                  p-8 shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
 
-    <!-- Defaulters -->
-    <div class="bg-slate-800 p-4 rounded">
-      <h2 class="font-semibold mb-3">Defaulters List</h2>
+        <h2 class="text-lg font-semibold mb-6 text-white">
+          Defaulters List
+        </h2>
 
-      <button id="loadDefaultersBtn"
-        class="bg-red-600 px-4 py-2 rounded mb-4">
-        Load Defaulters
-      </button>
-      <button id="exportDefaultersBtn"
-  class="bg-green-600 px-4 py-2 rounded mb-4">
-  Export Defaulters (CSV)
-</button>
+        <div class="flex flex-wrap gap-4 mb-6">
 
+          <button id="loadDefaultersBtn"
+            class="bg-gradient-to-r from-rose-600 to-red-500
+                   hover:from-rose-500 hover:to-red-400
+                   px-5 py-2.5 rounded-xl text-sm
+                   shadow-md transition-all duration-300">
+            Load Defaulters
+          </button>
 
-      <div id="defaultersTable"></div>
+          <button id="exportDefaultersBtn"
+            class="bg-gradient-to-r from-emerald-600 to-green-500
+                   hover:from-emerald-500 hover:to-green-400
+                   px-5 py-2.5 rounded-xl text-sm
+                   shadow-md transition-all duration-300">
+            Export Defaulters (CSV)
+          </button>
+
+        </div>
+
+        <div id="defaultersTable"></div>
+
+      </div>
+
     </div>
   `;
 }
+
 
 export function feeReportController() {
 
