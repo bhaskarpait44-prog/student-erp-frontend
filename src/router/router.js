@@ -7,7 +7,9 @@ import {
   StudentDetailsView,
   studentDetailsController
 } from "../views/student-details.view.js";
+
 import { logout, isAuthenticated } from "../auth/auth.store.js";
+
 import { FeeView, feeEvents } from "../views/fee.view.js";
 import { FeeStatusView, feeStatusController } from "../views/fee-status.view.js";
 import { FeeReportView, feeReportController } from "../views/fee-report.view.js";
@@ -16,9 +18,14 @@ import {
   classFeeController
 } from "../views/class-fee.view.js";
 
+import { SessionView, sessionController } from "../views/session.view.js";
+import { loadNavbarSessions } from "../utils/session.js";
+import { PromotionView, promotionController } from "../views/promotion.view.js";
 
 
-
+/* ======================================================
+   ROUTES CONFIG
+====================================================== */
 
 const routes = {
   "/": { view: LoginView, controller: loginController },
@@ -36,99 +43,127 @@ const routes = {
   },
 
   "/student-details": {
-  view: StudentDetailsView,
-  controller: studentDetailsController,
+    view: StudentDetailsView,
+    controller: studentDetailsController,
+    protected: true,
+  },
+
+  "/fees": {
+    view: FeeView,
+    controller: feeEvents,
+    protected: true,
+  },
+
+  "/fee-status": {
+    view: FeeStatusView,
+    controller: feeStatusController,
+    protected: true,
+  },
+
+  "/fee-reports": {
+    view: FeeReportView,
+    controller: feeReportController,
+    protected: true,
+  },
+
+  "/class-fee": {
+    view: ClassFeeView,
+    controller: classFeeController,
+    protected: true,
+  },
+
+  "/sessions": {
+    view: SessionView,
+    controller: sessionController,
+    protected: true,
+  },
+
+  "/promotions": {
+  view: PromotionView,
+  controller: promotionController,
   protected: true,
 },
-
-"/fees": {
-  view: FeeView,
-  controller: feeEvents,
-  protected: true,
-},
-
-"/fee-status": {
-  view: FeeStatusView,
-  controller: feeStatusController,
-  protected: true,
-},
-
-"/fee-reports": {
-  view: FeeReportView,
-  controller: feeReportController,
-  protected: true,
-},
-
-"/class-fee": {
-  view: ClassFeeView,
-  controller: classFeeController,
-  protected: true,
-},
-
-
-
 
 };
 
+/* ======================================================
+   ROUTER FUNCTION
+====================================================== */
+
 export const router = () => {
+
   const fullPath = window.location.hash.replace("#", "") || "/";
   const path = fullPath.split("?")[0];
 
   const route = routes[path] || routes["/"];
 
-  // 🔐 Protected Routes
+  /* ======================================================
+     PROTECTED ROUTES
+  ====================================================== */
+
   if (route.protected) {
+
     if (!isAuthenticated()) {
       window.location.hash = "#/";
       return;
     }
 
+    // 1️⃣ Render Dashboard Layout
     document.getElementById("app").innerHTML = DashboardView();
 
-// 🔥 Fee Dropdown Toggle
-setTimeout(() => {
-  const btn = document.getElementById("feeDropdownBtn");
-  const menu = document.getElementById("feeDropdownMenu");
-  const arrow = document.getElementById("feeArrow");
-
-  btn?.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-
-    if (menu.classList.contains("hidden")) {
-      arrow.style.transform = "rotate(0deg)";
-    } else {
-      arrow.style.transform = "rotate(180deg)";
-    }
-  });
-}, 0);
-
-
-
+    // 2️⃣ Render Page Content
     document.getElementById("pageContent").innerHTML =
       route.view();
 
+    // 3️⃣ Load Navbar Sessions (safe after DOM ready)
+    setTimeout(() => {
+      loadNavbarSessions?.();
+    }, 0);
+
+    // 4️⃣ Fee Dropdown Toggle
+    const feeBtn = document.getElementById("feeDropdownBtn");
+    const feeMenu = document.getElementById("feeDropdownMenu");
+    const feeArrow = document.getElementById("feeArrow");
+
+    feeBtn?.addEventListener("click", () => {
+      feeMenu?.classList.toggle("hidden");
+
+      if (feeMenu?.classList.contains("hidden")) {
+        feeArrow.style.transform = "rotate(0deg)";
+      } else {
+        feeArrow.style.transform = "rotate(180deg)";
+      }
+    });
+
+    // 5️⃣ Logout
     document.getElementById("logoutBtn")
       ?.addEventListener("click", () => {
         logout();
         window.location.hash = "#/";
       });
 
-    // Special case for student details
+    // 6️⃣ Special case → Student Details with query param
     if (path === "/student-details") {
+
       const hash = window.location.hash;
       const queryString = hash.split("?")[1];
       const params = new URLSearchParams(queryString);
       const id = params.get("id");
 
-      studentDetailsController(id);
+      studentDetailsController?.(id);
+
     } else {
+
       route.controller?.();
     }
 
     return;
   }
 
-  // Public
+  /* ======================================================
+     PUBLIC ROUTES
+  ====================================================== */
+
   document.getElementById("app").innerHTML = route.view();
   route.controller?.();
 };

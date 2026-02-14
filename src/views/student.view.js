@@ -12,8 +12,14 @@ export function StudentsView() {
   return `
   <div class="space-y-8">
 
+    <!-- HEADER -->
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold">Students</h1>
+      <div>
+        <h1 class="text-3xl font-bold">Students</h1>
+        <p class="text-slate-400 text-sm">
+          Manage student records
+        </p>
+      </div>
 
       <button id="openAddStudent"
         class="bg-blue-600 hover:bg-blue-500 px-5 py-2 rounded-lg shadow transition">
@@ -21,8 +27,18 @@ export function StudentsView() {
       </button>
     </div>
 
+    <!-- SEARCH -->
+    <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow">
+      <input
+        id="studentSearch"
+        placeholder="Search by name or roll number..."
+        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <!-- GRID -->
     <div id="studentsGrid"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <p class="text-slate-400">Loading...</p>
     </div>
 
@@ -32,7 +48,7 @@ export function StudentsView() {
   <div id="studentModal"
     class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
 
-    <div class="bg-slate-800 w-full max-w-3xl rounded-xl border border-slate-700">
+    <div class="bg-slate-800 w-full max-w-3xl rounded-xl border border-slate-700 shadow-xl">
 
       <div class="flex justify-between items-center px-6 py-4 border-b border-slate-700">
         <h2 id="modalTitle" class="text-lg font-semibold">Add Student</h2>
@@ -46,8 +62,8 @@ export function StudentsView() {
 
           ${Input("Full Name", "name")}
           ${Input("Roll Number", "rollNo")}
-          ${Input("Class", "className")}
           ${Input("Gender", "gender")}
+          ${Input("Class", "className")}
           ${Input("Mobile", "mobile")}
           ${Input("Email", "email")}
           ${Input("Father Name", "fatherName")}
@@ -82,23 +98,24 @@ export async function studentsController() {
   const openBtn = document.getElementById("openAddStudent");
   const closeBtn = document.getElementById("closeModal");
   const cancelBtn = document.getElementById("cancelModal");
+  const searchInput = document.getElementById("studentSearch");
 
-  // ==========================
-  // LOAD STUDENTS
-  // ==========================
+  let allStudents = [];
+
   async function loadStudents() {
-    const students = await getStudents();
+    allStudents = await getStudents();
+    renderStudents(allStudents);
+  }
+
+  function renderStudents(students) {
     grid.innerHTML = students.map(studentCard).join("");
 
-    /* ===== VIEW ===== */
     document.querySelectorAll(".viewBtn").forEach(btn => {
       btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        window.location.hash = `#/student-details?id=${id}`;
+        window.location.hash = `#/student-details?id=${btn.dataset.id}`;
       });
     });
 
-    /* ===== DROPDOWN TOGGLE ===== */
     document.querySelectorAll(".menuBtn").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -113,7 +130,6 @@ export async function studentsController() {
         .forEach(menu => menu.classList.add("hidden"));
     });
 
-    /* ===== EDIT ===== */
     document.querySelectorAll(".editBtn").forEach(btn => {
       btn.addEventListener("click", () => {
         const student = JSON.parse(
@@ -123,13 +139,10 @@ export async function studentsController() {
       });
     });
 
-    /* ===== DELETE ===== */
     document.querySelectorAll(".deleteBtn").forEach(btn => {
       btn.addEventListener("click", async () => {
-        const id = btn.dataset.id;
-
         if (confirm("Delete this student?")) {
-          await deleteStudent(id);
+          await deleteStudent(btn.dataset.id);
           await loadStudents();
         }
       });
@@ -138,21 +151,25 @@ export async function studentsController() {
 
   await loadStudents();
 
-  // ==========================
-  // OPEN ADD
-  // ==========================
+  /* SEARCH */
+  searchInput.addEventListener("input", () => {
+    const value = searchInput.value.toLowerCase();
+    const filtered = allStudents.filter(s =>
+      s.name.toLowerCase().includes(value) ||
+      s.rollNo.toLowerCase().includes(value)
+    );
+    renderStudents(filtered);
+  });
+
+  /* OPEN MODAL */
   openBtn.addEventListener("click", () => {
     document.getElementById("modalTitle").innerText = "Add Student";
     document.getElementById("studentForm").reset();
     document.getElementById("studentId").value = "";
-
     modal.classList.remove("hidden");
     modal.classList.add("flex");
   });
 
-  // ==========================
-  // CLOSE MODAL
-  // ==========================
   [closeBtn, cancelBtn].forEach(btn =>
     btn.addEventListener("click", () => {
       modal.classList.add("hidden");
@@ -160,22 +177,20 @@ export async function studentsController() {
     })
   );
 
-  // ==========================
-  // SAVE (ADD OR EDIT)
-  // ==========================
   saveBtn.addEventListener("click", async () => {
     const id = document.getElementById("studentId").value;
 
-    const data = {
-      name: val("name"),
-      rollNo: val("rollNo"),
-      className: val("className"), 
-      gender: val("gender"),
-      mobile: val("mobile"),
-      email: val("email"),
-      fatherName: val("fatherName"),
-      motherName: val("motherName"),
-    };
+      const data = {
+  name: val("name"),
+  rollNo: val("rollNo"),
+  gender: val("gender"),
+  className: val("className"), 
+  mobile: val("mobile"),
+  email: val("email"),
+  fatherName: val("fatherName"),
+  motherName: val("motherName"),
+};
+
 
     if (id) {
       await updateStudent(id, data);
@@ -189,9 +204,6 @@ export async function studentsController() {
     await loadStudents();
   });
 
-  // ==========================
-  // EDIT MODAL
-  // ==========================
   function openEditModal(student) {
     document.getElementById("modalTitle").innerText = "Edit Student";
 
@@ -204,7 +216,6 @@ export async function studentsController() {
     document.getElementById("email").value = student.email || "";
     document.getElementById("fatherName").value = student.fatherName || "";
     document.getElementById("motherName").value = student.motherName || "";
-
 
     modal.classList.remove("hidden");
     modal.classList.add("flex");
@@ -220,13 +231,29 @@ export async function studentsController() {
 ================================ */
 function studentCard(s) {
   return `
-  <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-blue-500 transition relative">
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:shadow-xl hover:border-blue-500 transition relative">
 
-    <div class="flex justify-between items-start mb-4">
-      <div>
-        <h3 class="text-lg font-semibold">${s.name}</h3>
-        <p class="text-sm text-slate-400">Roll No: ${s.rollNo}</p>
-        <p class="text-sm text-slate-400">Class: ${s.className || "-"}</p>
+    <div class="flex justify-between items-start">
+
+      <div class="flex items-center gap-4">
+
+        <div class="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg font-semibold">
+          ${s.name ? s.name.charAt(0).toUpperCase() : "S"}
+        </div>
+
+        <div>
+          <h3 class="text-lg font-semibold">
+            ${s.name}
+          </h3>
+
+          <p class="text-sm text-slate-400">
+            Roll No: ${s.rollNo}
+          </p>
+
+          <p class="text-sm text-slate-400">
+            Class: ${s.className || "-"}
+          </p>
+        </div>
 
       </div>
 
@@ -237,7 +264,7 @@ function studentCard(s) {
         </button>
 
         <div
-          class="dropdownMenu hidden absolute right-0 mt-2 w-36 bg-slate-900 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
+          class="dropdownMenu hidden absolute right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
 
           <button
             class="viewBtn w-full text-left px-4 py-2 text-sm hover:bg-slate-800"
@@ -261,7 +288,7 @@ function studentCard(s) {
       </div>
     </div>
 
-    <div class="space-y-1 text-sm text-slate-400">
+    <div class="mt-4 border-t border-slate-700 pt-3 space-y-1 text-sm text-slate-400">
       <p>Gender: ${s.gender || "-"}</p>
       <p>Mobile: ${s.mobile || "-"}</p>
       <p>Email: ${s.email || "-"}</p>

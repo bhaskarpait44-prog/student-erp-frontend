@@ -1,68 +1,55 @@
-import { getStudents } from "../api/student.service.js";
-import { feeService } from "../api/fee.service.js";
+import { request } from "../api/http.js";
 
-/* ===============================
-   VIEW
-================================ */
 export function FeeStatusView() {
   return `
   <div class="space-y-8">
 
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold">Fee Payment Status</h1>
+        <h1 class="text-3xl font-bold">Fee Status</h1>
         <p class="text-slate-400 text-sm">
-          View payment details class-wise
+          Session based fee tracking
         </p>
       </div>
 
-      <div class="relative">
-        <button id="filterBtn"
-          class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-lg hover:bg-slate-700">
-          Filter ▾
+      <div class="flex gap-3">
+        <button id="exportPdf"
+          class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg">
+          Export PDF
         </button>
 
-        <div id="filterPanel"
-          class="hidden absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-lg p-4 space-y-4 z-50">
-
-          <div>
-            <label class="text-sm text-slate-400">Select Class</label>
-            <select id="classFilter"
-              class="w-full mt-1 border border-slate-700 bg-slate-800 rounded-lg px-3 py-2">
-              <option value="">All Classes</option>
-            </select>
-          </div>
-
-          <div class="flex justify-end gap-2">
-            <button id="resetFilter"
-              class="text-sm text-slate-400 hover:text-white">
-              Reset
-            </button>
-            <button id="applyFilter"
-              class="bg-blue-600 px-3 py-1 rounded text-sm">
-              Apply
-            </button>
-          </div>
-
-        </div>
+        <button id="exportExcel"
+          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg">
+          Export Excel
+        </button>
       </div>
     </div>
 
-    <div class="bg-slate-800 p-6 rounded-2xl shadow-lg">
+    <!-- FILTER -->
+    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+      <select id="classFilter"
+        class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg">
+        <option value="">All Classes</option>
+      </select>
+    </div>
+
+    <!-- TABLE -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="border-b border-slate-700">
+          <thead class="bg-slate-900 border-b border-slate-700">
             <tr>
-              <th class="p-2 text-left">Student</th>
-              <th class="p-2 text-left">Class</th>
-              <th class="p-2 text-left">Total</th>
-              <th class="p-2 text-left">Paid</th>
-              <th class="p-2 text-left">Balance</th>
-              <th class="p-2 text-left">Status</th>
-              <th class="p-2 text-left">Action</th>
+              <th class="p-3 text-left">Name</th>
+              <th class="p-3 text-left">Roll</th>
+              <th class="p-3 text-left">Class</th>
+              <th class="p-3 text-left">Total</th>
+              <th class="p-3 text-left">Paid</th>
+              <th class="p-3 text-left">Due</th>
+              <th class="p-3 text-left">Status</th>
+              <th class="p-3 text-left">Action</th>
             </tr>
           </thead>
-          <tbody id="statusTable"></tbody>
+          <tbody id="feeStatusTable"></tbody>
         </table>
       </div>
     </div>
@@ -71,142 +58,153 @@ export function FeeStatusView() {
   `;
 }
 
-/* ===============================
-   CONTROLLER
-================================ */
 export async function feeStatusController() {
 
-  const students = await getStudents();
-  const feeRes = await feeService.getAllFees();
-  const fees = (feeRes.data || feeRes) || [];
+  const table = document.getElementById("feeStatusTable");
+  const filter = document.getElementById("classFilter");
 
-  const table = document.getElementById("statusTable");
-  const classFilter = document.getElementById("classFilter");
-  const filterBtn = document.getElementById("filterBtn");
-  const filterPanel = document.getElementById("filterPanel");
-  const applyFilter = document.getElementById("applyFilter");
-  const resetFilter = document.getElementById("resetFilter");
+  let data = [];
 
-  /* ===============================
-     Merge Students + Fees
-  =============================== */
+  async function load(className = "") {
+    const query = className ? `?className=${className}` : "";
+    data = await request(`/fees/status/all${query}`);
+    render(data);
+    loadClassOptions(data);
+  }
 
-  const merged = students.map(student => {
+  function render(rows) {
+    table.innerHTML = rows.map(r => `
+      <tr class="border-b border-slate-700 hover:bg-slate-900">
+        <td class="p-3">${r.name}</td>
+        <td class="p-3">${r.rollNo}</td>
+        <td class="p-3">${r.className}</td>
+        <td class="p-3">₹${r.totalAmount}</td>
+        <td class="p-3 text-green-400">₹${r.totalPaid}</td>
+        <td class="p-3 text-red-400">₹${r.dueAmount}</td>
+        <td class="p-3">
+          <span class="${r.status === "Paid"
+            ? "text-green-400"
+            : "text-yellow-400"}">
+            ${r.status}
+          </span>
+        </td>
+        <td class="p-3">
+          <button
+            data-id="${r.studentId}"
+            class="payBtn bg-blue-600 px-3 py-1 rounded text-xs">
+            Pay
+          </button>
+        </td>
+      </tr>
+    `).join("");
 
-    const fee = fees.find(
-      f => f.studentId && f.studentId._id === student._id
-    );
-
-    return {
-      student,
-      totalAmount: fee?.totalAmount || 0,
-      totalPaid: fee?.totalPaid || 0,
-      dueAmount: fee?.dueAmount || 0,
-    };
-  });
-
-  /* ===============================
-     Populate Class Filter (FROM STUDENTS)
-  =============================== */
-
-  const classes = [...new Set(
-    students.map(s => s.className)
-  )];
-
-  classFilter.innerHTML =
-    `<option value="">All Classes</option>` +
-    classes.map(c =>
-      `<option value="${c}">${c}</option>`
-    ).join("");
-
-  /* ===============================
-     Render Table
-  =============================== */
-
-  function render(data) {
-
-    table.innerHTML = data.map(f => {
-
-      const status =
-        f.dueAmount === 0 && f.totalAmount > 0
-          ? "Paid"
-          : f.totalPaid === 0
-            ? "Unpaid"
-            : "Partial";
-
-      const statusColor =
-        status === "Paid"
-          ? "text-green-400"
-          : status === "Unpaid"
-            ? "text-red-400"
-            : "text-yellow-400";
-
-      return `
-        <tr class="border-b border-slate-700">
-          <td class="p-2 font-medium">${f.student.name}</td>
-          <td class="p-2">${f.student.className}</td>
-          <td class="p-2">₹${f.totalAmount}</td>
-          <td class="p-2 text-green-400">₹${f.totalPaid}</td>
-          <td class="p-2 text-red-400">₹${f.dueAmount}</td>
-          <td class="p-2 ${statusColor} font-semibold">${status}</td>
-          <td class="p-2">
-            <button
-              data-id="${f.student._id}"
-              class="bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded text-xs payNowBtn">
-              Pay
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-    document.querySelectorAll(".payNowBtn")
+    document.querySelectorAll(".payBtn")
       .forEach(btn => {
         btn.addEventListener("click", () => {
-          window.location.hash =
-            `#/fees?studentId=${btn.dataset.id}`;
+          window.location.hash = `#/fees?studentId=${btn.dataset.id}`;
         });
       });
   }
 
-  render(merged);
+  function loadClassOptions(rows) {
+    const classes = [...new Set(rows.map(r => r.className))];
 
-  /* ===============================
-     Filter Logic
-  =============================== */
+    filter.innerHTML =
+      `<option value="">All Classes</option>` +
+      classes.map(c =>
+        `<option value="${c}">${c}</option>`
+      ).join("");
+  }
 
-  filterBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    filterPanel.classList.toggle("hidden");
+  filter.addEventListener("change", () => {
+    load(filter.value);
   });
 
-  applyFilter.addEventListener("click", () => {
+  /* EXPORT PDF */
+  document.getElementById("exportPdf")
+    .addEventListener("click", () => {
+      generatePDF(data);
+    });
 
-    const selectedClass = classFilter.value;
+  /* EXPORT EXCEL */
+  document.getElementById("exportExcel")
+    .addEventListener("click", () => {
+      exportExcel(data);
+    });
 
-    const filtered =
-      selectedClass
-        ? merged.filter(
-            f => f.student.className === selectedClass
-          )
-        : merged;
+  await load();
+}
 
-    render(filtered);
-    filterPanel.classList.add("hidden");
-  });
 
-  resetFilter.addEventListener("click", () => {
-    classFilter.value = "";
-    render(merged);
-    filterPanel.classList.add("hidden");
-  });
+function generatePDF(data) {
 
-  document.addEventListener("click", (e) => {
-    if (
-      !filterPanel.contains(e.target) &&
-      !filterBtn.contains(e.target)
-    ) {
-      filterPanel.classList.add("hidden");
-    }
-  });
+  const html = `
+    <html>
+    <head>
+      <title>Fee Report</title>
+      <style>
+        body { font-family: Arial; padding: 40px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; }
+      </style>
+    </head>
+    <body>
+      <h2>Fee Status Report</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Roll</th>
+            <th>Class</th>
+            <th>Total</th>
+            <th>Paid</th>
+            <th>Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(d => `
+            <tr>
+              <td>${d.name}</td>
+              <td>${d.rollNo}</td>
+              <td>${d.className}</td>
+              <td>${d.totalAmount}</td>
+              <td>${d.totalPaid}</td>
+              <td>${d.dueAmount}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  win.print();
+}
+
+function exportExcel(data) {
+
+  const csv = [
+    ["Name","Roll","Class","Total","Paid","Due"],
+    ...data.map(d => [
+      d.name,
+      d.rollNo,
+      d.className,
+      d.totalAmount,
+      d.totalPaid,
+      d.dueAmount
+    ])
+  ]
+  .map(e => e.join(","))
+  .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fee_status.csv";
+  a.click();
 }

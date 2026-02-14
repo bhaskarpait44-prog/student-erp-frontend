@@ -42,16 +42,62 @@ export function FeeReportView() {
 export function feeReportController() {
 
   document.getElementById("generateReportBtn")
-    .addEventListener("click", async () => {
+  .addEventListener("click", async () => {
 
-      const start = document.getElementById("startDate").value;
-      const end = document.getElementById("endDate").value;
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
 
-      const res = await feeService.getCollectionReport(start, end);
+    const data = await feeService.getCollectionReport(start, end);
 
-      document.getElementById("collectionResult")
-        .innerText = `Total Collection: ₹${res.totalCollection || 0}`;
-    });
+    if (!data.length) {
+      document.getElementById("collectionResult").innerHTML =
+        "<p>No records found</p>";
+      return;
+    }
+
+    document.getElementById("collectionResult").innerHTML = `
+      <table class="w-full text-sm">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Receipt</th>
+            <th>Name</th>
+            <th>Roll</th>
+            <th>Class</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.map(d => `
+            <tr>
+              <td>${new Date(d.date).toLocaleDateString()}</td>
+              <td>${d.receiptNo}</td>
+              <td>${d.studentName}</td>
+              <td>${d.rollNo}</td>
+              <td>${d.className}</td>
+              <td>${d.feeType}</td>
+              <td>₹${d.amount}</td>
+              <td>${d.paymentMode}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+
+      <button id="exportCollectionBtn"
+        class="bg-green-600 px-4 py-2 rounded mt-4">
+        Export Collection (CSV)
+      </button>
+    `;
+
+    document.getElementById("exportCollectionBtn")
+      .addEventListener("click", () => {
+        downloadCSV(data, "collection-report.csv");
+      });
+
+  });
+
 
 
     document.getElementById("exportDefaultersBtn")
@@ -65,8 +111,8 @@ export function feeReportController() {
     }
 
     const formattedData = defaulters.map(d => ({
-      RollNo: d.studentId.rollNo,
-      Name: d.studentId.name,
+      RollNo: d.rollNo,
+      Name: d.name,
       TotalAmount: d.totalAmount,
       Paid: d.totalPaid,
       Due: d.dueAmount,
@@ -94,8 +140,8 @@ export function feeReportController() {
           <tbody>
             ${defaulters.map(d => `
               <tr>
-                <td>${d.studentId.name}</td>
-                <td>${d.studentId.rollNo}</td>
+                <td>${d.name}</td>
+                <td>${d.rollNo}</td>
                 <td>₹${d.dueAmount}</td>
               </tr>
             `).join("")}

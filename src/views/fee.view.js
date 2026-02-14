@@ -10,7 +10,6 @@ export function FeeView() {
   return `
   <div class="space-y-8">
 
-    <!-- HEADER -->
     <div>
       <h1 class="text-3xl font-bold">Fee Management</h1>
       <p class="text-slate-400 text-sm">
@@ -18,7 +17,7 @@ export function FeeView() {
       </p>
     </div>
 
-    <!-- FILTER CARD -->
+    <!-- FILTER -->
     <div class="bg-slate-800 p-6 rounded-2xl shadow-lg">
       <div class="grid md:grid-cols-2 gap-4">
 
@@ -46,12 +45,12 @@ export function FeeView() {
       class="hidden bg-slate-800 p-6 rounded-2xl shadow-lg">
     </div>
 
-    <!-- SUMMARY CARDS -->
+    <!-- SUMMARY -->
     <div id="feeSummary"
       class="hidden grid md:grid-cols-3 gap-6">
     </div>
 
-    <!-- PAYMENT PANEL -->
+    <!-- PAYMENT -->
     <div id="paymentPanel"
       class="hidden bg-slate-800 p-6 rounded-2xl shadow-lg space-y-4">
 
@@ -202,7 +201,7 @@ function renderStudentInfo(student) {
 }
 
 /* ===============================
-   SUMMARY CARDS
+   SUMMARY
 ================================ */
 function renderFeeSummary(fee) {
 
@@ -274,7 +273,13 @@ function renderPaymentHistory(fee) {
                     ${new Date(p.paymentDate)
                       .toLocaleDateString()}
                   </td>
-                  <td class="p-2">
+                  <td class="p-2 space-x-3">
+                    <button
+                      class="printBtn text-blue-400 hover:text-blue-300"
+                      data-index="${index}">
+                      Print
+                    </button>
+
                     <button
                       class="deleteBtn text-red-400 hover:text-red-300"
                       data-index="${index}">
@@ -289,7 +294,17 @@ function renderPaymentHistory(fee) {
     </div>
   `;
 
-  // DELETE RECEIPT
+  /* PRINT */
+  document.querySelectorAll(".printBtn")
+    .forEach(btn => {
+      btn.addEventListener("click", () => {
+        const payment =
+          fee.payments[btn.dataset.index];
+        printReceipt(payment, fee.studentId);
+      });
+    });
+
+  /* DELETE */
   document.querySelectorAll(".deleteBtn")
     .forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -298,7 +313,7 @@ function renderPaymentHistory(fee) {
           fee.payments[btn.dataset.index];
 
         const confirmDelete = confirm(
-          `Are you sure you want to delete receipt ${payment.receiptNo}?\n\nThis action cannot be undone.`
+          `Are you sure you want to delete receipt ${payment.receiptNo}?`
         );
 
         if (!confirmDelete) return;
@@ -312,4 +327,44 @@ function renderPaymentHistory(fee) {
         loadFee(fee.studentId._id);
       });
     });
+}
+
+/* ===============================
+   PRINT RECEIPT
+================================ */
+function printReceipt(payment, student) {
+
+  const html = `
+    <html>
+      <head>
+        <title>Fee Receipt</title>
+        <style>
+          body { font-family: Arial; padding: 40px; }
+          .box {
+            border: 1px solid #000;
+            padding: 20px;
+            width: 400px;
+          }
+          h2 { margin-bottom: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h2>School Fee Receipt</h2>
+          <p><strong>Receipt No:</strong> ${payment.receiptNo}</p>
+          <p><strong>Name:</strong> ${student.name}</p>
+          <p><strong>Class:</strong> ${student.className}</p>
+          <p><strong>Fee Type:</strong> ${payment.feeType}</p>
+          <p><strong>Amount:</strong> ₹${payment.amount}</p>
+          <p><strong>Payment Mode:</strong> ${payment.paymentMode}</p>
+          <p><strong>Date:</strong> ${new Date(payment.paymentDate).toLocaleDateString()}</p>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const win = window.open("", "_blank");
+  win.document.write(html);
+  win.document.close();
+  win.print();
 }

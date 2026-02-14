@@ -218,10 +218,11 @@ export async function studentDetailsController(id) {
 
       await updateStudent(student._id, updatedData);
 
-      closeModal();
+closeModal();
 
-      // Reload profile
-      studentDetailsController(student._id);
+// Refresh page properly
+window.location.hash = `#/student-details?id=${student._id}`;
+
     });
 
   function val(id) {
