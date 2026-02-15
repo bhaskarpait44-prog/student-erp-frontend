@@ -68,7 +68,7 @@ async function loadAttendance(studentId) {
   try {
 
     const res = await fetch(
-      `http://localhost:5000/api/attendance/${studentId}`,
+      `${import.meta.env.VITE_API_BASE}/attendance/${studentId}`,
       {
         headers: {
           Authorization: `Bearer ${getToken()}`
